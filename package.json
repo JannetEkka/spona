@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test test/*.test.ts",
     "reverse": "tsx src/reverse.ts",
-    "report": "tsx scripts/report.ts"
+    "report": "tsx scripts/report.ts",
+    "site": "tsx scripts/build-site.ts"
   },
   "dependencies": {
     "@mozaik-ai/cloud-sdk": "^0.1.3",

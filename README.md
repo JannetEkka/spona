@@ -4,6 +4,8 @@ Spona (Serbian for "link" or "clasp") is a team of AI agents on [Mozaik](https:/
 
 NTP Novi Sad Hackathon 2026 (JigJoy × Mozaik), Track 02 EINSTEIN. Team SmarTies (Jannet Ekka), online.
 
+**Live page:** https://jannetekka.github.io/spona/ replays the recorded run: every agent loop over time, every place the critic stepped in, the four proposals with their charts, and what the run found.
+
 **The showcase run:** [runs/2026-10-31-full/](runs/2026-10-31-full/) has the proposals, the [trace](runs/2026-10-31-full/trace.md) with every place the critic stepped in, the [ranking of pairs](runs/2026-10-31-full/ranking.md) and [every challenge with its outcome](runs/2026-10-31-full/challenges.md). Charts of what it found are in [insights.md](runs/2026-10-31-full/insights.md).
 
 ## Impact
@@ -126,6 +128,8 @@ To ask the other way round, which company challenges fit one researcher's work, 
 npm run reverse -- R1008
 ```
 
+`npm run site -- <run id>` rebuilds the live page's data (`docs/data/run.js`) from a recorded run, with no model call; `docs/index.html` is the page, served by GitHub Pages from `docs/`.
+
 `npm test` runs the rule checks against the real dataset (namesakes, duplicates, departures, quote matching, and that fit doesn't change with title or publication count). `npm run typecheck` checks the types.
 
 ## Cheap search first, and the model budget
@@ -193,6 +197,7 @@ src/
   trace/report.ts       trace.md, insights.md, ranking.md, challenges.md, proposals
   trace/visuals.ts      the charts (Mermaid, drawn from the run's data)
 docs/architecture.svg   the diagram above
+docs/index.html         the live page (GitHub Pages); its data is docs/data/run.js
 runs/                   recorded runs
 test/                   rule checks against the real dataset; chart checks
 scripts/                dataset fetch, model and Mozaik cloud probes, report rebuild, Gantt render

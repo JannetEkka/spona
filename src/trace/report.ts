@@ -55,7 +55,7 @@ function atAGlance(markdown: string, chart: string | undefined): string {
 }
 
 /** What became of one challenge, in the words insights.md uses. */
-function outcomeOf(s: SponaState, challengeId: string, noMatch: Map<string, string>): string {
+export function outcomeOf(s: SponaState, challengeId: string, noMatch: Map<string, string>): string {
 	const card = s.board.cards.get(challengeId)
 	if (!card) return "not analysed in this run"
 	if (s.board.selected.some((id) => id.startsWith(`${challengeId}~`))) return "proposal written"
@@ -91,7 +91,7 @@ export function boardFromJson(json: any): Board {
 	}
 }
 
-function maxOverlap(loops: LoopRecord[]): { max: number; at: number } {
+export function maxOverlap(loops: LoopRecord[]): { max: number; at: number } {
 	const points = loops.flatMap((l) => (l.end === undefined ? [] : [{ t: l.start, d: 1 }, { t: l.end, d: -1 }])).sort((a, b) => a.t - b.t || a.d - b.d)
 	let cur = 0
 	let max = 0
