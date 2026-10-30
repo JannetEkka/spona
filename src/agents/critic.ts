@@ -14,6 +14,8 @@ import { belongsToPair, pairPack, source } from "./evidence"
 
 const MAX_ROUNDS = 2 // challenge and evidence cards: one revision, then unsupported claims are dropped
 const PROPOSAL_ROUNDS = 3 // proposals: up to two revisions, then what is still open is printed with the proposal
+// A capitalised word at the start of a sentence ("If BrzaPošta …") is not part of a name.
+const SENTENCE_START = new Set("a an and after all although any as at because before both but by each every for from here how if in its no not of on once our since so that the their then there this though to unless until what when where whether while why with".split(" "))
 
 const INSTRUCTION = `You are the Critic in Spona, a team of agents that proposes collaborations between University of Novi Sad researchers and NTP Novi Sad companies. You check claims against their cited sources.
 For each claim, list in "not_in_source" every specific detail the claim states that the cited text does not: a method, tool, material, dataset, domain, number, year, result, or a role such as "led", "coordinated" or "developed". Paraphrase of what the source says is fine; adding to it is not. Then:
@@ -252,6 +254,7 @@ export function createCritic(): Agent {
 		for (const raw of new Set(named)) {
 			// "Prof. Kiss's group" names Kiss: stop at the first possessive and drop the 's.
 			const words = raw.replace(/^(?:Prof(?:essor)?\.?|Dr\.?)\s+/, "").split(/\s+/)
+			if (words.length > 1 && SENTENCE_START.has(words[0].toLowerCase())) words.shift()
 			const cut = words.findIndex((w) => /['’]s$/.test(w))
 			const name = (cut >= 0 ? words.slice(0, cut + 1) : words).join(" ").replace(/['’]s$/, "")
 			if (!known.includes(fold(name))) problems.push({ quote: raw, problem: `"${name}" is not named, or not spelled this way, in any source for this pair`, check: "rule" })
@@ -275,7 +278,13 @@ export function createCritic(): Agent {
 				model: MODELS.judge,
 				reasoningEffort: "low",
 			})
-			for (const p of answer.problems ?? []) problems.push({ quote: p.quote, problem: `${p.problem} Fix: ${p.fix}`, check: "model" })
+			for (const p of answer.problems ?? []) {
+				// A point must quote the draft and ask for a change; the model sometimes quotes words the
+				// draft doesn't contain, or lists something and then says no change is needed.
+				if (p.quote.trim().split(/\s+/).length >= 3 && !quoteAppearsIn(p.quote, proposal.markdown)) continue
+				if (/no change (is )?needed/i.test(p.fix)) continue
+				problems.push({ quote: p.quote, problem: `${p.problem} Fix: ${p.fix}`, check: "model" })
+			}
 		} catch (e) {
 			problems.push({ quote: "(whole proposal)", problem: `could not be checked: ${(e as Error).message}`, check: "model" })
 		} finally {

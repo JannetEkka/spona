@@ -56,7 +56,9 @@ export interface LedgerEntry {
 	servedModel?: string
 	startedAt: string
 	ms: number
-	inputTokens: number
+	inputTokens: number // all input, including tokens written to or read from a prompt cache
+	cacheWriteTokens?: number
+	cacheReadTokens?: number
 	outputTokens: number
 	thoughtTokens: number
 	cached: boolean
@@ -227,8 +229,15 @@ export class SponaRunner implements InferenceRunner {
 						.map((i) => i.content.text)
 						.join("")
 					if (!text.trim()) throw new Error("empty answer")
+					// The JigJoy gateway caches long Claude prompts by itself, and Anthropic leaves cache
+					// tokens out of input_tokens, so they are read from the raw usage and counted as input.
+					const raw = (output.rowResponse as any)?.usage
+					const cacheWriteTokens = raw?.cache_creation_input_tokens ?? 0
+					const cacheReadTokens = raw?.cache_read_input_tokens ?? 0
 					const usage = {
-						inputTokens: output.tokenUsage?.inputTokens ?? 0,
+						inputTokens: (output.tokenUsage?.inputTokens ?? 0) + cacheWriteTokens + cacheReadTokens,
+						cacheWriteTokens,
+						cacheReadTokens,
 						outputTokens: output.tokenUsage?.outputTokens ?? 0,
 						thoughtTokens: output.tokenUsage?.outputTokenDetails?.reasoning_tokens ?? 0,
 					}
@@ -292,12 +301,14 @@ export class SponaRunner implements InferenceRunner {
 	}
 
 	stats() {
-		const byModel: Record<string, { calls: number; cached: number; inputTokens: number; outputTokens: number }> = {}
+		const byModel: Record<string, { calls: number; cached: number; inputTokens: number; cacheWriteTokens: number; cacheReadTokens: number; outputTokens: number }> = {}
 		for (const e of this.ledger) {
-			const m = (byModel[e.model] ??= { calls: 0, cached: 0, inputTokens: 0, outputTokens: 0 })
+			const m = (byModel[e.model] ??= { calls: 0, cached: 0, inputTokens: 0, cacheWriteTokens: 0, cacheReadTokens: 0, outputTokens: 0 })
 			if (e.cached) m.cached++
 			else m.calls++
 			m.inputTokens += e.inputTokens
+			m.cacheWriteTokens += e.cacheWriteTokens ?? 0
+			m.cacheReadTokens += e.cacheReadTokens ?? 0
 			m.outputTokens += e.outputTokens + e.thoughtTokens
 		}
 		return { calls: this.calls, exhausted: [...this.exhausted.keys()], byModel }

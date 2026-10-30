@@ -54,7 +54,15 @@ export function writeRun(s: SponaState, events: TraceEvent[], loops: Map<string,
 	const allLoops = [...loops.values()]
 	const overlap = maxOverlap(allLoops)
 	const finishedAt = events.find((e) => e.type === "run.finished")?.t ?? s.elapsed()
-	const cost = Object.entries(stats.byModel).reduce((sum, [m, v]) => sum + (PRICES[m] ? (v.inputTokens * PRICES[m].input + v.outputTokens * PRICES[m].output) / 1e6 : 0), 0)
+	// Cache writes cost 1.25× the input price and cache reads 0.1× (Anthropic's 5-minute cache).
+	const cost = Object.entries(stats.byModel).reduce((sum, [m, v]) => {
+		const p = PRICES[m]
+		if (!p) return sum
+		const plain = v.inputTokens - v.cacheWriteTokens - v.cacheReadTokens
+		return sum + (plain * p.input + v.cacheWriteTokens * p.input * 1.25 + v.cacheReadTokens * p.input * 0.1 + v.outputTokens * p.output) / 1e6
+	}, 0)
+	const cacheNote = (v: (typeof stats.byModel)[string]) =>
+		v.cacheWriteTokens || v.cacheReadTokens ? ` (of the input, ${v.cacheWriteTokens.toLocaleString()} written to and ${v.cacheReadTokens.toLocaleString()} read from the gateway's prompt cache)` : ""
 
 	// --- proposals -------------------------------------------------------------------------
 	const proposalFiles: { file: string; pairId: string; title: string }[] = []
@@ -162,7 +170,7 @@ export function writeRun(s: SponaState, events: TraceEvent[], loops: Map<string,
 		"",
 		`- **Data:** ${companies.length} companies, ${board.challengesTotal} challenges, ${ds.researchers.length} researcher records, ${ds.publications.size} publications, ${ds.projects.size} projects, ${ds.patents.size} patents, ${ds.pages.length} company pages, indexed in ${secs(extras.libraryMs)} with no model call.`,
 		`- **Duration:** ${secs(finishedAt)} · **agent loops:** ${allLoops.length} · **most loops running at once:** ${overlap.max} (at ${secs(overlap.at)})`,
-		`- **Model requests:** ${stats.calls} (${Object.entries(stats.byModel).map(([m, v]) => `${m}: ${v.calls} calls${v.cached ? ` + ${v.cached} cached` : ""}, ${v.inputTokens.toLocaleString()} in / ${v.outputTokens.toLocaleString()} out tokens`).join("; ")}). ${cost > 0 ? `Gemini on the free tier; Claude from the hackathon's gateway credit, about $${cost.toFixed(2)} at list prices.` : "Free tier only."}${stats.exhausted.length ? ` Out of daily quota during the run: ${stats.exhausted.join(", ")}.` : ""}`,
+		`- **Model requests:** ${stats.calls} (${Object.entries(stats.byModel).map(([m, v]) => `${m}: ${v.calls} calls${v.cached ? ` + ${v.cached} cached` : ""}, ${v.inputTokens.toLocaleString()} in / ${v.outputTokens.toLocaleString()} out tokens${cacheNote(v)}`).join("; ")}). ${cost > 0 ? `Gemini on the free tier; Claude from the hackathon's gateway credit, about $${cost.toFixed(2)} at list prices.` : "Free tier only."}${stats.exhausted.length ? ` Out of daily quota during the run: ${stats.exhausted.join(", ")}.` : ""}`,
 		extras.cloudRunUrl ? `- **Mozaik cloud:** run events at ${extras.cloudRunUrl}; each of the ${extras.cloudLoopUrls.length} agent loops also streamed live as its own session (first: ${extras.cloudLoopUrls[0] ?? "-"}).` : "- **Mozaik cloud:** not connected for this run.",
 		`- **Critic interventions:** ${iv.length} (${by((x) => x.stage)}; ${by((x) => x.check)} checks; outcomes ${by((x) => x.outcome ?? "open")})`,
 		`- **Proposals:** ${proposalFiles.length}: ${proposalFiles.map((p) => `[${p.title}](proposals/${p.file})`).join(", ")}`,
