@@ -57,7 +57,7 @@ The critic checks three things, each in two steps. Rules come first because they
 | --- | --- | --- | --- |
 | Challenge cards | the quote is copied verbatim from the company's own text (any script); enough search terms | none | back to the analyst with the reason; accepted without the quote after one revision |
 | Evidence cards | every cited id exists; a cited paper, project or patent is this person's (listed on their profile or carrying their researcher id, never a name match alone); years in the claim match the source | batched: does the cited text say what the claim says? supported, overstated or unsupported | back to the profiler, who revises or withdraws; still unsupported after one revision → dropped. A pair needs two surviving claims to be proposed. |
-| Proposals | every cited id belongs to this pair; the researcher and company are named; every person named is in the sources, spelled the same way | does any statement of fact go beyond the sources? (invented staff, data volumes, equipment, numbers, dates) | back to the writer, up to two revisions; anything still open is printed under the proposal |
+| Proposals | every cited id belongs to this pair; the researcher and company are named; every person named is in the sources, spelled the same way | does any statement of fact go beyond the sources? (invented staff, data volumes, equipment, numbers, dates) Each point must quote the draft word for word; a point whose quote isn't in the draft is discarded | back to the writer, up to two revisions; anything still open is printed under the proposal |
 
 ## How to run
 
