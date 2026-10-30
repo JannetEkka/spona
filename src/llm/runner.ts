@@ -9,7 +9,7 @@
 // - writes a ledger line for every call: model, tokens, time, which agent asked and why.
 import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
-import { join } from "node:path"
+import { dirname, join } from "node:path"
 import {
 	AnthropicMessages,
 	GeminiGenerateContent,
@@ -147,7 +147,14 @@ export class SponaRunner implements InferenceRunner {
 
 	private markExhausted(model: string, retryMs: number | undefined) {
 		this.exhausted.set(model, Date.now() + (retryMs ?? 6 * 3600_000))
-		if (this.options.quotaFile) writeFileSync(this.options.quotaFile, JSON.stringify(Object.fromEntries(this.exhausted), null, 1))
+		if (!this.options.quotaFile) return
+		// Only a memo for the next run: failing to write it must never fail the call.
+		try {
+			mkdirSync(dirname(this.options.quotaFile), { recursive: true })
+			writeFileSync(this.options.quotaFile, JSON.stringify(Object.fromEntries(this.exhausted), null, 1))
+		} catch (e) {
+			console.error(`could not save ${this.options.quotaFile}: ${(e as Error).message}`)
+		}
 	}
 
 	private isExhausted(model: string): boolean {
