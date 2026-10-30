@@ -134,17 +134,22 @@ export interface EvidenceItem {
 	title: string
 }
 
-/** The company's need on the left, the researcher's own work the critic kept on the right. */
-export function evidenceMap(need: { id: string; company: string; text: string }, researcher: { id: string; name: string }, items: EvidenceItem[]): string | undefined {
+/** The company's need, the researcher, and the researcher's own work the critic kept. */
+export function evidenceMap(
+	need: { id: string; company: string; text: string },
+	researcher: { id: string; name: string },
+	items: EvidenceItem[],
+	link?: string,
+): string | undefined {
 	if (!items.length) return undefined
 	return [
 		"```mermaid",
 		"flowchart LR",
-		`    need["${label(`${need.id} · ${need.company}`)}<br/>${wrap(label(cut(need.text, 120)), 36)}"]`,
-		`    subgraph work["${label(`${researcher.name} (${researcher.id}): work the critic checked`)}"]`,
-		...items.map((e, i) => `        e${i + 1}["${label(`${e.id}${e.year ? ` · ${e.year}` : ""}`)}<br/>${wrap(label(cut(e.title, 90)))}"]`),
-		"    end",
-		...items.map((_, i) => `    need --> e${i + 1}`),
+		`    need["${label(need.id)}<br/>${wrap(label(need.company), 24)}<br/><br/>${wrap(label(cut(need.text, 110)), 24)}"]`,
+		`    who["${wrap(label(researcher.name), 24)}<br/>${label(researcher.id)}"]`,
+		...items.map((e, i) => `    e${i + 1}["${label(`${e.id}${e.year ? ` · ${e.year}` : ""}`)}<br/>${wrap(label(cut(e.title, 80)), 24)}"]`),
+		`    need -->${link ? `|"${label(link)}"|` : ""} who`,
+		...items.map((_, i) => `    who --> e${i + 1}`),
 		"```",
 	].join("\n")
 }

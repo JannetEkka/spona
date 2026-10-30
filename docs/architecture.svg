@@ -44,14 +44,17 @@
 
   <rect class="box" x="880" y="24" width="330" height="116" rx="8"/>
   <text x="896" y="48" class="h">Guarded runner (a Mozaik InferenceRunner)</text>
-  <text x="896" y="70" class="s">GEMINI_API_KEY_NTP only · free-tier pacing</text>
-  <text x="896" y="88" class="s">fallback across free models · quota memory</text>
+  <text x="896" y="70" class="s">GEMINI_API_KEY_NTP · JIGJOY_ANTHROPIC_*</text>
+  <text x="896" y="88" class="s">pacing · fallback across models · quota memory</text>
   <text x="896" y="106" class="s">answer cache · ledger of every call</text>
   <text x="896" y="126" class="s"><tspan font-weight="600">Called by</tspan> every agent loop that needs a model</text>
-  <path class="line" d="M1210,82 L1238,82" marker-end="url(#arrow)"/>
-  <rect class="box" x="1240" y="52" width="130" height="60" rx="30"/>
-  <text x="1305" y="78" class="h" text-anchor="middle">Gemini API</text>
-  <text x="1305" y="96" class="s" text-anchor="middle">free tier</text>
+  <path class="line" d="M1210,82 L1232,82" marker-end="url(#arrow)"/>
+  <rect class="box" x="1234" y="24" width="142" height="116" rx="12"/>
+  <text x="1305" y="46" class="h" text-anchor="middle">Models</text>
+  <text x="1305" y="68" class="s" text-anchor="middle"><tspan font-weight="600">Gemini</tspan> free tier</text>
+  <text x="1305" y="84" class="s" text-anchor="middle">analysts, profilers</text>
+  <text x="1305" y="108" class="s" text-anchor="middle"><tspan font-weight="600">Claude</tspan> (JigJoy credit)</text>
+  <text x="1305" y="124" class="s" text-anchor="middle">critic, writer</text>
 
   <!-- runtime frame -->
   <rect class="frame" x="30" y="156" width="1340" height="494" rx="10"/>
