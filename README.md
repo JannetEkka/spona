@@ -4,7 +4,7 @@ Spona (Serbian for "link" or "clasp") is a team of AI agents on [Mozaik](https:/
 
 NTP Novi Sad Hackathon 2026 (JigJoy × Mozaik), Track 02 EINSTEIN. Team SmarTies (Jannet Ekka), online.
 
-**The showcase run:** [runs/FINAL_RUN/](runs/FINAL_RUN/) has the proposals, the [trace](runs/FINAL_RUN/trace.md) with every place the critic stepped in, the [ranking of pairs](runs/FINAL_RUN/ranking.md) and [every challenge with its outcome](runs/FINAL_RUN/challenges.md).
+**The showcase run:** [runs/2026-10-31-full/](runs/2026-10-31-full/) has the proposals, the [trace](runs/2026-10-31-full/trace.md) with every place the critic stepped in, the [ranking of pairs](runs/2026-10-31-full/ranking.md) and [every challenge with its outcome](runs/2026-10-31-full/challenges.md). It took 297 seconds on all 153 companies: 73 agent loops with up to 15 running at once, 76 model requests, 30 critic interventions, and 4 proposals for 4 different companies.
 
 ## What it does
 
@@ -47,7 +47,9 @@ Each model question is its own Mozaik loop (`runLoop`) with a fresh context, so 
 - The evidence budget opens up as analysis progresses, so the first results can't use it all: a profiler may only take a pair that ranks inside the unlocked budget on the whole board.
 - The writer drafts every selected pair at once, and the critic reviews each draft as it lands.
 
-The [trace](runs/FINAL_RUN/trace.md) has a Gantt chart of every loop. In the showcase run up to N loops ran at the same time.
+The [trace](runs/2026-10-31-full/trace.md) has a Gantt chart of every loop. In the showcase run up to 15 loops ran at the same time:
+
+![Every agent loop in the showcase run, by agent and time](docs/run-gantt.png)
 
 ### Review loops
 
@@ -96,7 +98,7 @@ The page calls them `ANTHROPIC_BASE_URL` and `ANTHROPIC_API_KEY`. Spona reads th
 npm start
 ```
 
-That is a full run: all 153 companies, 4 proposals, about N model requests and N minutes. For a quick look, `npm run small` runs the first 12 companies. Options:
+That is a full run: all 153 companies, 4 proposals, about 75 model requests and 5 minutes. For a quick look, `npm run small` runs the first 12 companies. Options:
 
 | Flag | Default | |
 | --- | --- | --- |
@@ -124,8 +126,9 @@ The Gemini API free tier allows about **20 requests per day per model** (quota i
 - Models only see what search surfaced: a challenge, one researcher, and their three best-matching papers plus matching projects and patents.
 - Calls are batched: ten companies per analyst call, four pairs per profiler call, up to eight evidence cards per critic call, revisions collected for a few seconds and sent together.
 - The runner (`src/llm/runner.ts`, a Mozaik `InferenceRunner`) paces each model, retries on rate limits, and moves to the next free model when one is out of daily quota, overloaded or hanging. It remembers exhausted models in `.cache/quota.json` until their quota resets. Every call goes into a ledger.
+- Claude prompts through the JigJoy gateway are cached by the gateway on its own, and Anthropic reports cached tokens apart from `input_tokens`. The runner counts them as input and the trace prices them (cache writes at 1.25× the input price).
 
-In the showcase run the models read about N tokens in total, a small part of the ~7M in the dataset. The rest was handled by search and rules.
+In the showcase run the models read about 470,000 input tokens in total (325,000 on Gemini flash-lite, 146,000 on Claude), a small part of the ~7M in the dataset. The rest was handled by search and rules. The Claude part cost about $1.04 of the hackathon credit at list prices.
 
 ## Accuracy and transparency
 

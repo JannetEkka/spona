@@ -20,4 +20,8 @@ Spona was built and run on a free Gemini API key. What we measured on 30 October
 - **A hard cap.** `--max-calls` (default 120) stops the run from spending more. When the cap is hit, agents get an error answer and fall back: claims that can't be checked don't pass.
 - **A cache.** Answers are cached by prompt in `.cache/llm/`, so rerunning after a crash only pays for what didn't finish. `--fresh` ignores it; the recorded runs in `runs/` used `--fresh`.
 
-A full run on all 153 companies needs about 50 requests, most of them on flash-lite.
+## The recorded run
+
+[runs/2026-10-31-full](../runs/2026-10-31-full/) ran on 31 October 2026 (IST) with the gateway key set: analysts and profilers on `gemini-3.5-flash-lite`, the critic and the writer on `claude-sonnet-4-6`. It made 76 requests: 45 calls on flash-lite, 28 on Claude, and 3 retries after 503 ("high demand") and per-minute 429 answers from flash-lite. The models read about 470,000 input tokens. Claude cost about $1.04 of the $20 gateway credit at list prices; most of its input was written to the gateway's prompt cache, which the gateway does by itself for long prompts and Anthropic bills at 1.25× the input price.
+
+An attempt a few minutes earlier stalled: every flash model in the analysts' chain answered 503, the last one, `gemini-3-flash-preview`, was out of its daily quota from development, and saving that to `.cache/quota.json` failed because `--fresh` on a new checkout had never created `.cache/`. The call never returned. The runner now creates the folder, and a failed save is only logged.
