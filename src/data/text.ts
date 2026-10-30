@@ -79,3 +79,10 @@ export function truncate(text: string, max: number): string {
 	if (!text) return ""
 	return text.length <= max ? text : text.slice(0, max).replace(/\s+\S*$/, "") + " …"
 }
+
+/** A rough test for Serbian text (either script), so English-only word checks can stand aside. */
+export function looksSerbian(text: string): boolean {
+	if (hasCyrillic(text)) return true
+	const words = ` ${fold(text)} `
+	return [" je ", " su ", " za ", " od ", " koji ", " koja ", " sa ", " na ", " u ", " i ", " se "].filter((w) => words.includes(w)).length >= 5
+}

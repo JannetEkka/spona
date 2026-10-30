@@ -6,7 +6,7 @@
 // Anything unsupported goes back to its author with the reason; after two rounds it is dropped.
 import type { Agent } from "@mozaik-ai/core"
 import { MODELS } from "../config"
-import { fold, quoteAppearsIn } from "../data/text"
+import { fold, looksSerbian, quoteAppearsIn, tokens } from "../data/text"
 import { ask } from "../llm/ask"
 import { emit, makeAgent, on, state } from "../runtime"
 import type { Claim, Intervention, Pair } from "../state"
@@ -93,8 +93,21 @@ function ruleCheck(pair: Pair, claim: Claim): string | undefined {
 		})
 		if (!ok) return `the year ${y} is not in ${claim.sources.join(", ")}`
 	}
+	// Most of a faithful claim's words are in its sources (median 0.93 in our runs). Below half,
+	// the claim is about something else or cites the wrong record.
+	const sourceText = claim.sources.map((id) => source(s, id)?.text ?? "").join(" ")
+	if (looksSerbian(sourceText)) return undefined // an English claim about a Serbian source is checked by the model
+	const sourceWords = new Set(tokens(sourceText))
+	const name = new Set(tokens(s.ds.researcherById.get(pair.researcherId)?.name ?? ""))
+	const words = [...new Set(tokens(claim.text))].filter((w) => !GLUE.has(w) && !name.has(w))
+	const missing = words.filter((w) => !sourceWords.has(w))
+	if (words.length >= 6 && missing.length / words.length > 0.5)
+		return `most of the claim's words are not in ${claim.sources.join(", ")} (${missing.slice(0, 8).join(", ")}): it may cite the wrong record`
 	return undefined
 }
+
+/** Words that say who did what, not what was done; they don't need to be in the source. */
+const GLUE = new Set(["she", "he", "her", "his", "their", "serv", "led", "lead", "includ", "develop", "research", "work", "publish", "author", "co", "investigat", "project", "principal", "investigator", "coordinat", "experience", "prior"])
 
 export function createCritic(): Agent {
 	let agent: Agent

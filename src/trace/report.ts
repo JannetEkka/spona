@@ -149,7 +149,9 @@ export function writeRun(s: SponaState, events: TraceEvent[], loops: Map<string,
 	const iv = board.interventions
 	const by = (f: (x: (typeof iv)[number]) => string) => Object.entries(iv.reduce((m: Record<string, number>, x) => ((m[f(x)] = (m[f(x)] ?? 0) + 1), m), {})).map(([k, v]) => `${k}: ${v}`).join(", ")
 	const domain = events.filter((e) => !["message_received.started", "model.answer", "ranking.updated", "participant.joined"].includes(e.type))
-	const example = board.selected.find((id) => iv.some((x) => x.targetId.startsWith(id))) ?? board.selected[0]
+	// The worked example: the selected pair the critic sent back most often, so the review loop shows.
+	const touched = (id: string) => iv.filter((x) => x.targetId.startsWith(`${id}#`) || x.targetId.startsWith(`${id}@`) || x.targetId === id.split("~")[0]).length
+	const example = [...board.selected].sort((a, b) => touched(b) - touched(a))[0]
 	const story = example
 		? domain.filter((e) => JSON.stringify(e.data).includes(example) || JSON.stringify(e.data).includes(`"${example.split("~")[0]}"`))
 		: []
