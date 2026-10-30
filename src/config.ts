@@ -22,8 +22,8 @@ export const POOLS: Record<string, string[]> = {
 
 /** Conservative pacing per model; 429s push it back further. */
 export const LIMITS: Record<string, ModelLimits> = {
-	"gemini-3.5-flash-lite": { rpm: 10, concurrency: 3 },
-	"gemini-3.1-flash-lite": { rpm: 10, concurrency: 3 },
+	"gemini-3.5-flash-lite": { rpm: 15, concurrency: 4 },
+	"gemini-3.1-flash-lite": { rpm: 15, concurrency: 4 },
 	"gemini-3-flash-preview": { rpm: 5, concurrency: 2 },
 	"gemini-3.5-flash": { rpm: 5, concurrency: 2 },
 	"gemini-3.8-flash": { rpm: 5, concurrency: 2 },

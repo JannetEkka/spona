@@ -40,6 +40,12 @@ const SCHEMA = {
 	required: ["title", "format", "markdown"],
 }
 
+function today(): string {
+	const now = new Date()
+	const start = new Date(now.getFullYear(), now.getMonth() + 3, 1)
+	return `Today is ${now.toISOString().slice(0, 10)}; plans start no earlier than ${start.toLocaleString("en-GB", { month: "long", year: "numeric" })}.`
+}
+
 function writerPack(pair: Pair): string {
 	const s = state()
 	const card = pair.card!
@@ -68,7 +74,7 @@ export function createWriter(): Agent {
 		try {
 			const answer = await ask<{ title: string; format: string; markdown: string }>(agent, {
 				task: `draft ${pairId}`,
-				prompt: `Draft the proposal for this pair.\n\n${writerPack(pair)}`,
+				prompt: `Draft the proposal for this pair. ${today()}\n\n${writerPack(pair)}`,
 				schema: SCHEMA,
 				model: MODELS.writer,
 				reasoningEffort: "low",

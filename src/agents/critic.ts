@@ -109,7 +109,6 @@ export function createCritic(): Agent {
 		const haystack = `${challenge.text} ${challenge.detail} ${company.about} ${company.rd_capacity} ${company.plans}`
 		let problem: string | undefined
 		if (card.kind !== "not_research" && card.searchTerms.length < 4) problem = `only ${card.searchTerms.length} search terms; give 8-14`
-		else if (card.quote.split(/\s+/).length > 40) problem = `the quote has ${card.quote.split(/\s+/).length} words; copy one passage of 6-25 words exactly`
 		else if (!quoteAppearsIn(card.quote, haystack)) problem = `the quote "${card.quote}" does not appear in ${challengeId} or the company record; copy words exactly`
 		if (problem && card.round < MAX_ROUNDS - 1) {
 			card.status = "returned"
@@ -141,15 +140,15 @@ export function createCritic(): Agent {
 		}
 		if (forModel.length) {
 			queue.push({ pair, claims: forModel })
-			flushTimer ??= setTimeout(flushModelChecks, 2_500)
+			flushTimer ??= setTimeout(flushModelChecks, 6_000)
 		} else finishCard(pair)
 	}
 
 	async function flushModelChecks() {
 		flushTimer = undefined
 		const s = state()
-		const batch = queue.splice(0, 6)
-		if (queue.length) flushTimer = setTimeout(flushModelChecks, 2_500)
+		const batch = queue.splice(0, 8)
+		if (queue.length) flushTimer = setTimeout(flushModelChecks, 6_000)
 		if (!batch.length) return
 		const claims = batch.flatMap((b) => b.claims)
 		const sourceIds = [...new Set(claims.flatMap((c) => c.sources))]

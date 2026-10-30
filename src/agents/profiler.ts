@@ -81,7 +81,7 @@ export function createProfiler(n: number): Agent {
 		pullTimer ??= setTimeout(() => {
 			pullTimer = undefined
 			void pull()
-		}, 1_500)
+		}, 4_000)
 	}
 
 	/** Budget opens up as analysis progresses, so early results can't use up every evidence card. */
