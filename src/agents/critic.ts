@@ -53,10 +53,11 @@ const PROPOSAL_SCHEMA = {
 				type: "object",
 				properties: {
 					quote: { type: "string" },
+					verdict: { type: "string", enum: ["unsupported", "overstated", "supported"] },
 					problem: { type: "string" },
 					fix: { type: "string" },
 				},
-				required: ["quote", "problem", "fix"],
+				required: ["quote", "verdict", "problem", "fix"],
 			},
 		},
 	},
@@ -268,10 +269,10 @@ export function createCritic(): Agent {
 		const valid = cited.filter((id) => belongsToPair(s, pair, id).ok)
 		busy++
 		try {
-			const answer = await ask<{ problems: { quote: string; problem: string; fix: string }[] }>(agent, {
+			const answer = await ask<{ problems: { quote: string; verdict?: string; problem: string; fix: string }[] }>(agent, {
 				task: `review proposal ${pairId} round ${proposal.round}`,
 				prompt:
-					`Review this draft proposal. List every statement of fact about the researcher, the company or their past work that the sources below don't support: invented papers, skills, tools, staff, data volumes, equipment, customers, numbers or dates. Plans, research questions and proposed work are not facts and are fine. Quote the exact words. If everything is supported, return an empty list.\n\n` +
+					`Review this draft proposal. List every statement of fact about the researcher, the company or their past work that the sources below don't support: invented papers, skills, tools, staff, data volumes, equipment, customers, numbers or dates. Plans, research questions and proposed work are not facts and are fine. Quote the exact words. List only statements that need a change: verdict "unsupported" when the sources don't say it, "overstated" when they say less. Don't list statements the sources support, or details the draft leaves out. If everything is supported, return an empty list.\n\n` +
 					`## Draft\n${proposal.markdown}\n\n## Sources\n${pairPack(s, pair)}\n` +
 					valid.map((id) => `- ${source(s, id)!.text}`).join("\n"),
 				schema: PROPOSAL_SCHEMA,
@@ -280,9 +281,9 @@ export function createCritic(): Agent {
 			})
 			for (const p of answer.problems ?? []) {
 				// A point must quote the draft and ask for a change; the model sometimes quotes words the
-				// draft doesn't contain, or lists something and then says no change is needed.
+				// draft doesn't contain, or lists a statement only to say the sources support it.
 				if (p.quote.trim().split(/\s+/).length >= 3 && !quoteAppearsIn(p.quote, proposal.markdown)) continue
-				if (/no change (is )?needed/i.test(p.fix)) continue
+				if (p.verdict === "supported" || /no change (is )?needed|^\s*(this is )?supported\.?\s*$/i.test(p.fix)) continue
 				problems.push({ quote: p.quote, problem: `${p.problem} Fix: ${p.fix}`, check: "model" })
 			}
 		} catch (e) {

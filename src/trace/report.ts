@@ -148,7 +148,7 @@ export function writeRun(s: SponaState, events: TraceEvent[], loops: Map<string,
 			challengeId: pair.challengeId,
 			kind: challengeCard?.kind ?? "research",
 			collaboration: challengeCard?.collaboration ?? "joint_project",
-			researchersSearched: board.owner.size,
+			researchersSearched: Object.entries(board.shards).filter(([k]) => k.startsWith("profiler-")).reduce((n, [, ids]) => n + ids.length, 0),
 			candidates: rivals.length,
 			aboveFloor: rivals.filter((p) => p.status !== "excluded" && p.fit.topic >= s.config.topicFloor).length,
 			floorPct: Math.round(s.config.topicFloor * 100),
@@ -258,6 +258,8 @@ export function writeRun(s: SponaState, events: TraceEvent[], loops: Map<string,
 	const analysed = board.cards.size
 	const researchLike = kinds.research + kinds.engineering
 	const unmatched = outcomes.get("no close match at the university") ?? 0
+	const notResearch = [...board.cards.values()].filter((c) => c.kind === "not_research").slice(0, 2)
+	const sectors = [...unmatchedBySector.entries()].sort((a, b) => b[1] - a[1])
 	const ivOutcomes = new Map<string, number>()
 	for (const x of iv0) ivOutcomes.set(x.outcome ?? "open", (ivOutcomes.get(x.outcome ?? "open") ?? 0) + 1)
 	const order = [
@@ -278,7 +280,7 @@ export function writeRun(s: SponaState, events: TraceEvent[], loops: Map<string,
 			"",
 			"## What the companies asked for",
 			"",
-			`The three analysts classified ${analysed} of ${board.challengesTotal} challenges. ${kinds.not_research} (${pct(kinds.not_research / Math.max(1, analysed))}) are not research problems (funding, hiring, legal and similar), so Spona writes no proposal for them and says why.`,
+			`The three analysts classified ${analysed} of ${board.challengesTotal} challenges. ${kinds.not_research} (${pct(kinds.not_research / Math.max(1, analysed))}) are not research problems, so Spona writes no proposal for them and gives the reason${notResearch.length ? `, for example ${notResearch.map((c) => `${c.challengeId}: "${esc(cut(c.why.replace(/\.$/, ""), 140))}"`).join(" and ")}` : ""}.`,
 			"",
 			pie("Challenges by kind", [
 				["research", kinds.research],
@@ -294,9 +296,9 @@ export function writeRun(s: SponaState, events: TraceEvent[], loops: Map<string,
 			"",
 			"## Where the university has no close match yet",
 			"",
-			`${unmatched} of the ${researchLike} research and engineering challenges have no researcher whose own work covers at least ${pct(s.config.topicFloor)} of the challenge's terms. By the company's sector:`,
+			`${unmatched} of the ${researchLike} research and engineering challenges have no researcher whose own work covers at least ${pct(s.config.topicFloor)} of the challenge's terms. By the company's sector${sectors.length > 15 ? ` (the 15 of ${sectors.length} sectors with the most)` : ""}:`,
 			"",
-			barTable(["sector", "challenges with no close match"], [...unmatchedBySector.entries()].sort((a, b) => b[1] - a[1]).slice(0, 15)),
+			barTable(["sector", "challenges with no close match"], sectors.slice(0, 15)),
 			"",
 			"For EINSTEIN this is a list of company needs the university can't yet meet from its own published work: input for hiring, calls and partner universities. A missing match can also mean the right person's profile doesn't use the company's words, so each one is worth a human look.",
 			"",
