@@ -34,8 +34,8 @@ All participants join one Mozaik runtime. They don't call each other. Each one r
 | Industry Analyst ×3 | gemini-3.5-flash-lite | a third of the companies each | `shard.assigned`, `challenge.returned` | `challenge.submitted` |
 | Matchmaker | none | pairs and the live ranking | `challenge.accepted`, `card.verified` | `pair.queued`, `pair.excluded`, `pair.rescored`, `ranking.updated` |
 | Research Profiler ×3 | gemini-3.5-flash-lite | whole faculties each (balanced by head count) | `pair.queued`, `card.returned` | `card.submitted` |
-| Critic | gemini-3-flash-preview, after rule checks | nothing; it reviews | `challenge.submitted`, `card.submitted`, `proposal.submitted` | `…accepted`, `…returned`, `card.verified`, `critic.intervened` |
-| Proposal Writer | gemini-3.5-flash | the drafts | `selection.made`, `proposal.returned` | `proposal.submitted` |
+| Critic | Claude Sonnet 4.6 (JigJoy gateway) or gemini-3-flash-preview, after rule checks | nothing; it reviews | `challenge.submitted`, `card.submitted`, `proposal.submitted` | `…accepted`, `…returned`, `card.verified`, `critic.intervened` |
+| Proposal Writer | Claude Sonnet 4.6 (JigJoy gateway) or gemini-3.5-flash | the drafts | `selection.made`, `proposal.returned` | `proposal.submitted` |
 | Recorder, Cloud relay | none | the trace; the Mozaik cloud session | every event | files in `runs/<id>/`; events to Mozaik cloud |
 
 Each model question is its own Mozaik loop (`runLoop`) with a fresh context, so two loops of one agent never share memory. An `InterceptionHandler` on the loop's `model_message` transition hands the answer back to the agent that asked. Models are called through a custom `InferenceRunner` (see [free tier](#cheap-search-first-and-the-free-tier)).
@@ -81,7 +81,16 @@ That clones the dataset into `data/` (39 MB). Then set the key. Spona reads `GEM
 cp .env.example .env
 ```
 
-Put your key in `.env` as `GEMINI_API_KEY_NTP=...`, and optionally `MOZAIK_API_KEY` and `MOZAIK_PROJECT_ID` to watch the run live in Mozaik cloud. Then:
+Put your key in `.env` as `GEMINI_API_KEY_NTP=...`, and optionally `MOZAIK_API_KEY` and `MOZAIK_PROJECT_ID` to watch the run live in Mozaik cloud.
+
+If you have the hackathon's Claude credit, the critic and the writer use Claude Sonnet 4.6 through JigJoy's gateway. Put the two values from build.jigjoy.ai/credits in `.env` under these names:
+
+```
+JIGJOY_ANTHROPIC_BASE_URL=...
+JIGJOY_ANTHROPIC_API_KEY=...
+```
+
+The page calls them `ANTHROPIC_BASE_URL` and `ANTHROPIC_API_KEY`. Spona reads them under the `JIGJOY_` names instead and passes them to Mozaik's Anthropic endpoint explicitly, because the plain names are also read by other Anthropic tools on the same machine (Claude Code among them) and would redirect those to the gateway. Without these two, the critic and the writer use free Gemini flash models. The run prints which model each role uses. Then:
 
 ```bash
 npm start
@@ -107,7 +116,7 @@ npm run reverse -- R1008
 
 `npm test` runs the rule checks against the real dataset (namesakes, duplicates, departures, quote matching, and that fit doesn't change with title or publication count). `npm run typecheck` checks the types.
 
-## Cheap search first, and the free tier
+## Cheap search first, and the model budget
 
 The Gemini API free tier allows about **20 requests per day per model** (quota id `GenerateRequestsPerDayPerProjectPerModel-FreeTier`). Spona is built around that:
 

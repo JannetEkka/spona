@@ -1,23 +1,35 @@
-// Models and budgets. Everything runs on the Gemini API free tier.
+// Models and budgets. Analysts and profilers run on the Gemini free tier. The critic and the
+// writer use Claude Sonnet 4.6 through the hackathon's gateway when its key is set, and free
+// Gemini flash models otherwise.
 import type { ModelLimits } from "./llm/runner"
+
+/** The JigJoy gateway, under names Claude Code doesn't read (ANTHROPIC_* would redirect it). */
+export function claudeGateway(): { apiKey: string; baseURL: string } | undefined {
+	const apiKey = process.env.JIGJOY_ANTHROPIC_API_KEY
+	const baseURL = process.env.JIGJOY_ANTHROPIC_BASE_URL
+	return apiKey && baseURL ? { apiKey, baseURL } : undefined
+}
+
+const claude = Boolean(claudeGateway())
 
 export const MODELS = {
 	/** Analysts and profilers: many small, structured jobs. */
 	fast: "gemini-3.5-flash-lite",
 	/** The critic: fewer calls, needs judgement. */
-	judge: "gemini-3-flash-preview",
+	judge: claude ? "claude-sonnet-4-6" : "gemini-3-flash-preview",
 	/** The proposal writer. */
-	writer: "gemini-3.5-flash",
+	writer: claude ? "claude-sonnet-4-6" : "gemini-3.5-flash",
 }
 
-// The free tier allows about 20 requests a day per model (quota id
-// GenerateRequestsPerDayPerProjectPerModel-FreeTier), so each role has a chain of free models
-// with separate quotas. When one is exhausted for the day, overloaded or hanging, the runner
-// moves to the next and remembers the exhausted ones until their quota resets.
+// The Gemini free tier allows 20 requests a day per flash model (quota id
+// GenerateRequestsPerDayPerProjectPerModel-FreeTier), so each role has a chain of models with
+// separate quotas. When one is exhausted for the day, out of credit, overloaded or hanging, the
+// runner moves to the next and remembers the exhausted ones until their quota resets.
 export const POOLS: Record<string, string[]> = {
 	"gemini-3.5-flash-lite": ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3-flash-preview", "gemini-3.8-flash"],
 	"gemini-3-flash-preview": ["gemini-3-flash-preview", "gemini-3.8-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"],
 	"gemini-3.5-flash": ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-3-flash-preview", "gemini-3.5-flash-lite"],
+	"claude-sonnet-4-6": ["claude-sonnet-4-6", "gemini-3-flash-preview", "gemini-3.8-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite"],
 }
 
 /** Conservative pacing per model; 429s push it back further. */
@@ -27,6 +39,12 @@ export const LIMITS: Record<string, ModelLimits> = {
 	"gemini-3-flash-preview": { rpm: 5, concurrency: 2 },
 	"gemini-3.5-flash": { rpm: 5, concurrency: 2 },
 	"gemini-3.8-flash": { rpm: 5, concurrency: 2 },
+	"claude-sonnet-4-6": { rpm: 30, concurrency: 4 },
+}
+
+/** List prices per million tokens, for the cost line in the trace. Gemini runs on the free tier. */
+export const PRICES: Record<string, { input: number; output: number }> = {
+	"claude-sonnet-4-6": { input: 3, output: 15 },
 }
 
 export interface RunConfig {

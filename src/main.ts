@@ -8,7 +8,7 @@ import { createMatchmaker } from "./agents/matchmaker"
 import { createProfiler } from "./agents/profiler"
 import { createCloudRelay, createRecorder } from "./agents/recorder"
 import { createWriter } from "./agents/writer"
-import { defaultConfig, LIMITS, POOLS } from "./config"
+import { claudeGateway, defaultConfig, LIMITS, MODELS, POOLS } from "./config"
 import { loadDataset } from "./data/load"
 import { Library } from "./data/search"
 import { SponaRunner } from "./llm/runner"
@@ -65,8 +65,11 @@ const lib = new Library(ds)
 const libraryMs = Date.now() - t0
 print(`library: ${ds.researchers.length} researchers, ${ds.publications.size} publications, ${ds.companies.length} companies indexed in ${(libraryMs / 1000).toFixed(1)} s (no model calls)`)
 
+const gateway = claudeGateway()
+print(`models: analysts and profilers ${MODELS.fast}; critic ${MODELS.judge}; writer ${MODELS.writer}${gateway ? " (Claude through the JigJoy gateway)" : ""}`)
 const runner = new SponaRunner({
 	apiKey,
+	anthropic: gateway,
 	pools: POOLS,
 	limits: LIMITS,
 	maxCalls: config.maxCalls,

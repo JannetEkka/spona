@@ -1,6 +1,8 @@
 // The one place models are called. It plugs into Mozaik as the runtime's InferenceRunner, so
 // every agent loop still runs through Mozaik (and shows up in Mozaik cloud), while this class:
-// - passes this entry's key (GEMINI_API_KEY_NTP) explicitly; GEMINI_API_KEY is never read,
+// - passes this entry's keys explicitly: GEMINI_API_KEY_NTP to Mozaik's Gemini endpoint, and the
+//   JigJoy gateway's key and URL to Mozaik's Anthropic endpoint; GEMINI_API_KEY and
+//   ANTHROPIC_API_KEY / ANTHROPIC_BASE_URL are never read,
 // - spaces calls per model to stay inside the free tier, backs off on 429 and falls back to
 //   another free model when one is exhausted for the day,
 // - caches answers on disk (optional), and
@@ -9,6 +11,7 @@ import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import {
+	AnthropicMessages,
 	GeminiGenerateContent,
 	ModelMessageItem,
 	type InferenceInput,
@@ -24,6 +27,8 @@ export interface ModelLimits {
 
 export interface RunnerOptions {
 	apiKey: string
+	/** Claude through the hackathon's inference gateway (optional). */
+	anthropic?: { apiKey: string; baseURL: string }
 	/** Requested model -> models to try, in order. The first is the requested one. */
 	pools: Record<string, string[]>
 	limits: Record<string, ModelLimits>
@@ -101,16 +106,28 @@ function parseError(e: unknown): ParsedError {
 	const raw = String((e as any)?.message ?? e)
 	const status = Number((e as any)?.status ?? (raw.match(/"code":\s*(\d{3})/)?.[1] ?? 0))
 	const delay = raw.match(/"retryDelay":\s*"(\d+(?:\.\d+)?)s"/)?.[1]
+	const retryAfter = Number((e as any)?.headers?.get?.("retry-after") ?? NaN) // Anthropic SDK errors
 	return {
 		status,
-		retryMs: delay ? Math.ceil(Number(delay) * 1000) : undefined,
-		daily: /PerDay/i.test(raw),
+		retryMs: delay ? Math.ceil(Number(delay) * 1000) : Number.isFinite(retryAfter) ? retryAfter * 1000 : undefined,
+		// Gemini's free tier says PerDay; a gateway out of credit says so in words or with 402.
+		daily: /PerDay/i.test(raw) || status === 402 || /credit|balance|budget/i.test(raw),
 		message: raw.replace(/\s+/g, " ").slice(0, 300),
 	}
 }
 
+/** Anthropic's JSON schemas need additionalProperties: false on every object; Gemini's reject it. */
+function strictSchema(schema: any): any {
+	if (Array.isArray(schema)) return schema.map(strictSchema)
+	if (!schema || typeof schema !== "object") return schema
+	const out: any = Object.fromEntries(Object.entries(schema).map(([k, v]) => [k, strictSchema(v)]))
+	if (out.type === "object") out.additionalProperties = false
+	return out
+}
+
 export class SponaRunner implements InferenceRunner {
 	private readonly endpoint: GeminiGenerateContent
+	private readonly claude?: AnthropicMessages
 	private readonly pacers = new Map<string, Pacer>()
 	private readonly exhausted = new Map<string, number>() // model -> when its daily quota resets
 	private calls = 0
@@ -118,6 +135,7 @@ export class SponaRunner implements InferenceRunner {
 
 	constructor(private readonly options: RunnerOptions) {
 		this.endpoint = new GeminiGenerateContent(undefined, { apiKey: options.apiKey })
+		if (options.anthropic) this.claude = new AnthropicMessages(undefined, { apiKey: options.anthropic.apiKey, baseURL: options.anthropic.baseURL })
 		if (options.cacheDir) mkdirSync(options.cacheDir, { recursive: true })
 		if (options.quotaFile && existsSync(options.quotaFile)) {
 			for (const [model, until] of Object.entries(JSON.parse(readFileSync(options.quotaFile, "utf-8")) as Record<string, number>))
@@ -198,7 +216,7 @@ export class SponaRunner implements InferenceRunner {
 				try {
 					this.calls++
 					const output = await Promise.race([
-						this.endpoint.infer({ ...input, model }),
+						this.infer(input, model),
 						new Promise<never>((_, reject) => {
 							timer = setTimeout(() => reject(Object.assign(new Error(`no answer after ${this.options.timeoutMs / 1000} s`), { status: 504 })), this.options.timeoutMs)
 						}),
@@ -246,6 +264,17 @@ export class SponaRunner implements InferenceRunner {
 		entry.outcome = "error"
 		entry.error = lastError
 		return finish(this.answer(JSON.stringify({ __error: lastError }), undefined))
+	}
+
+	private infer(input: InferenceInput, model: string): Promise<InferenceOutput> {
+		if (!model.startsWith("claude-")) return this.endpoint.infer({ ...input, model })
+		if (!this.claude) return Promise.reject(Object.assign(new Error("no Claude gateway configured"), { status: 400 }))
+		return this.claude.infer({
+			...input,
+			model,
+			maxOutputTokens: input.maxOutputTokens ?? 8192, // Anthropic requires max_tokens
+			structuredOutput: input.structuredOutput && { ...input.structuredOutput, schema: strictSchema(input.structuredOutput.schema) },
+		})
 	}
 
 	/** Always hand the loop exactly one assistant message, so a failed call never breaks Mozaik's state machine. */
