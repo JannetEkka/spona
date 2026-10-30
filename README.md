@@ -94,10 +94,16 @@ That is a full run: all 153 companies, 4 proposals, about N model requests and N
 | `--companies N` | all | only the first N companies |
 | `--proposals N` | 4 | how many pairs get a proposal |
 | `--profile-budget N` | 24 | how many pairs get an evidence card (the main driver of model calls) |
-| `--max-calls N` | 90 | hard cap on model requests |
+| `--max-calls N` | 120 | hard cap on model requests |
 | `--approve` | off | a person approves the shortlist in the terminal before any proposal is written |
 | `--fresh` | off | ignore the answer cache in `.cache/llm` |
 | `--run-id ID` | a timestamp | output goes to `runs/ID/` |
+
+To ask the other way round, which company challenges fit one researcher's work, run a reverse search. It uses the library only, no model:
+
+```bash
+npm run reverse -- R1008
+```
 
 `npm test` runs the rule checks against the real dataset (namesakes, duplicates, departures, quote matching, and that fit doesn't change with title or publication count). `npm run typecheck` checks the types.
 

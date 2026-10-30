@@ -58,7 +58,7 @@ export function defaultConfig(runId: string): RunConfig {
 		profilerBatch: 4,
 		candidatesPerChallenge: 5,
 		topicFloor: 0.4,
-		maxCalls: 90,
+		maxCalls: 120,
 		maxMinutes: 40,
 		cache: true,
 		approve: false,
