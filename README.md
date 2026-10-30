@@ -113,7 +113,7 @@ The Gemini API free tier allows about **20 requests per day per model** (quota i
 
 - The library indexes every paper and profile with BM25 at start, in about 7 seconds, with no model call. Latin and Cyrillic are folded to one form, so `Јелена Марковић` and `Jelena Marković` match. The matchmaker searches it for every challenge, and the critic reads sources from it.
 - Models only see what search surfaced: a challenge, one researcher, and their three best-matching papers plus matching projects and patents.
-- Calls are batched: ten companies per analyst call, four pairs per profiler call, up to six evidence cards per critic call, revisions collected for a few seconds and sent together.
+- Calls are batched: ten companies per analyst call, four pairs per profiler call, up to eight evidence cards per critic call, revisions collected for a few seconds and sent together.
 - The runner (`src/llm/runner.ts`, a Mozaik `InferenceRunner`) paces each model, retries on rate limits, and moves to the next free model when one is out of daily quota, overloaded or hanging. It remembers exhausted models in `.cache/quota.json` until their quota resets. Every call goes into a ledger.
 
 In the showcase run the models read about N tokens in total, a small part of the ~7M in the dataset. The rest was handled by search and rules.

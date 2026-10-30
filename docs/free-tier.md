@@ -15,7 +15,7 @@ Spona was built and run on a free Gemini API key. What we measured on 30 October
 
 - **Search first.** The library indexes the whole dataset with BM25 in about 7 seconds. Matching, ranking, deduplication, availability and most of the critic's checks are rules over that index. Models only see what search surfaced.
 - **Many small jobs go to flash-lite, the few that need judgement go to flash.** Analysts and profilers use `gemini-3.5-flash-lite`. The critic's model check and the writer use flash models.
-- **Batching.** Ten companies per analyst call, four pairs per profiler call, up to six evidence cards per critic call. Returned items are collected for a few seconds and revised in one call.
+- **Batching.** Ten companies per analyst call, four pairs per profiler call, up to eight evidence cards per critic call. Returned items are collected for a few seconds and revised in one call.
 - **Fallback chains.** Each role has a list of free models. When one is out of daily quota, overloaded or silent for two minutes, the runner moves to the next and records the switch in the ledger. Exhausted models are remembered in `.cache/quota.json` until they reset, so the next run doesn't waste requests on them.
 - **A hard cap.** `--max-calls` (default 120) stops the run from spending more. When the cap is hit, agents get an error answer and fall back: claims that can't be checked don't pass.
 - **A cache.** Answers are cached by prompt in `.cache/llm/`, so rerunning after a crash only pays for what didn't finish. `--fresh` ignores it; the recorded runs in `runs/` used `--fresh`.
