@@ -141,6 +141,7 @@ export function writeRun(s: SponaState, events: TraceEvent[], loops: Map<string,
 			{ id: pair.challengeId, company: company.name, text: company.challenges.find((c) => c.id === pair.challengeId)?.text ?? "" },
 			{ id: researcher.id, name: researcher.name },
 			items,
+			`their work covers ${Math.round(pair.fit.topic * 100)}% of its terms`,
 		)
 		const rivals = [...board.pairs.values()].filter((p) => p.challengeId === pair.challengeId)
 		const path = pairPath({

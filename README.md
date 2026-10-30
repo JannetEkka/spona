@@ -190,11 +190,12 @@ src/
   data/                 loading, text folding, BM25, the library, people rules
   llm/                  the guarded runner (InferenceRunner) and ask() (one loop per question)
   agents/               coordinator, analyst, matchmaker, profiler, critic, writer, recorder, fit
-  trace/report.ts       trace.md, ranking.md, challenges.md, proposals
+  trace/report.ts       trace.md, insights.md, ranking.md, challenges.md, proposals
+  trace/visuals.ts      the charts (Mermaid, drawn from the run's data)
 docs/architecture.svg   the diagram above
 runs/                   recorded runs
-test/rules.test.ts      rule checks against the real dataset
-scripts/                dataset fetch, model and Mozaik cloud probes
+test/                   rule checks against the real dataset; chart checks
+scripts/                dataset fetch, model and Mozaik cloud probes, report rebuild, Gantt render
 ```
 
 ## Limitations
