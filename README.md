@@ -4,7 +4,16 @@ Spona (Serbian for "link" or "clasp") is a team of AI agents on [Mozaik](https:/
 
 NTP Novi Sad Hackathon 2026 (JigJoy × Mozaik), Track 02 EINSTEIN. Team SmarTies (Jannet Ekka), online.
 
-**The showcase run:** [runs/2026-10-31-full/](runs/2026-10-31-full/) has the proposals, the [trace](runs/2026-10-31-full/trace.md) with every place the critic stepped in, the [ranking of pairs](runs/2026-10-31-full/ranking.md) and [every challenge with its outcome](runs/2026-10-31-full/challenges.md). It took 297 seconds on all 153 companies: 73 agent loops with up to 15 running at once, 76 model requests, 30 critic interventions, and 4 proposals for 4 different companies.
+**The showcase run:** [runs/2026-10-31-full/](runs/2026-10-31-full/) has the proposals, the [trace](runs/2026-10-31-full/trace.md) with every place the critic stepped in, the [ranking of pairs](runs/2026-10-31-full/ranking.md) and [every challenge with its outcome](runs/2026-10-31-full/challenges.md). Charts of what it found are in [insights.md](runs/2026-10-31-full/insights.md).
+
+## Impact
+
+The track brief puts the problem in one line: the University of Novi Sad "has thousands of researchers, NTP Novi Sad hundreds of companies, yet they rarely work together." Neither the brief nor the dataset says how pairs are found today or how long that takes, so Spona makes no claim to be faster or better than the current process. Here is what one recorded run gives EINSTEIN, every number counted from [runs/2026-10-31-full](runs/2026-10-31-full/):
+
+- **Every company need gets an outcome, in one pass.** All 489 challenges from 153 companies were classified and given an outcome in 5 min 48 s. 125 (26%) are not research problems, and each says why. 276 have a close match named in `challenges.md` but weren't profiled, because the run's evidence budget (24 cards, set by free-tier quotas) went to closer pairs. 64 of the 364 research and engineering challenges have no researcher whose own published work covers at least 40% of the challenge's terms. That list, by sector, is in [insights.md](runs/2026-10-31-full/insights.md): company needs the university can't yet meet from its own work, which EINSTEIN can use when planning hires, calls or partner-university links.
+- **Proposals a company and a researcher can take to a first meeting, with every fact checked.** 4 proposals for 4 different companies. Every statement about a person or company cites the record it came from. Before anything was written, the critic checked 96 claims on 24 evidence cards and sent 13 back (11 rewritten to match their source, 2 dropped). In the drafts it sent back 20 statements that went beyond their sources; 6 points from its last round are printed under their proposals for the people to settle.
+- **Cheap enough to rerun whenever a company joins.** A full pass made 84 model requests: 47 on the Gemini free tier and 37 on Claude, about $1.52 of the hackathon credit at list prices. The models read about 556,000 tokens in all, under a tenth of the ~7M-token dataset; search and rules did the rest.
+- **Not measured yet:** whether these pairs meet and start projects. The data is synthetic and no real company or researcher has seen these proposals. The way to measure it is the feedback step under [EINSTEIN network](#how-spona-plugs-into-the-einstein-network-and-einstein-stars): record, per proposed pair, whether they met and whether a project started, and compare with EINSTEIN's own count of collaborations from before.
 
 ## What it does
 
@@ -14,11 +23,12 @@ Output, in `runs/<id>/`:
 
 | File | What's in it |
 | --- | --- |
-| `proposals/*.md` | One proposal per selected pair, in the shape of the dataset's example: the problem, research questions, a plan with a result per step, what each side brings, why this pair, open questions for the first meeting, publication and IP terms. Below each proposal: the evidence the critic checked, what it sent back and what happened, and the cited sources. |
+| `proposals/*.md` | One proposal per selected pair, with three charts drawn from the run's data (the company's need beside the researcher's checked work, the plan as a Gantt chart, and the path from 489 challenges to this pair), in the shape of the dataset's example: the problem, research questions, a plan with a result per step, what each side brings, why this pair, open questions for the first meeting, publication and IP terms. Below each proposal: the evidence the critic checked, what it sent back and what happened, and the cited sources. |
 | `ranking.md` | Pairs ranked by fit, with the reasons for each score, and the pairs that were not proposed and why. |
 | `challenges.md` | All challenges: research, engineering with a research angle, or not research, the research question in academic terms, and the outcome. A challenge with no good match at the university says so. |
 | `trace.md` | One run, end to end: a chart of which agent loops ran at the same time, a table of every critic intervention with its outcome, one pair followed from start to finish, and the full event timeline. |
-| `trace.jsonl`, `loops.json`, `ledger.json` | Raw events from the Mozaik bus, loop timings, and every model call with its model, tokens and time. |
+| `insights.md` | Charts of the whole run: what kind of problem each challenge is, what became of it, where the university has no close match by sector, and what the critic did. |
+| `trace.jsonl`, `loops.json`, `ledger.json`, `board.json` | Raw events from the Mozaik bus, loop timings, every model call with its model, tokens and time, and the final shared board. `npm run report -- <id>` rebuilds the Markdown files from them without a model call. |
 
 Every agent loop also streams live to Mozaik cloud when `MOZAIK_API_KEY` is set.
 
@@ -47,7 +57,7 @@ Each model question is its own Mozaik loop (`runLoop`) with a fresh context, so 
 - The evidence budget opens up as analysis progresses, so the first results can't use it all: a profiler may only take a pair that ranks inside the unlocked budget on the whole board.
 - The writer drafts every selected pair at once, and the critic reviews each draft as it lands.
 
-The [trace](runs/2026-10-31-full/trace.md) has a Gantt chart of every loop. In the showcase run up to 15 loops ran at the same time:
+The [trace](runs/2026-10-31-full/trace.md) has a Gantt chart of every loop. In the showcase run up to 19 loops ran at the same time:
 
 ![Every agent loop in the showcase run, by agent and time](docs/run-gantt.png)
 
@@ -98,7 +108,7 @@ The page calls them `ANTHROPIC_BASE_URL` and `ANTHROPIC_API_KEY`. Spona reads th
 npm start
 ```
 
-That is a full run: all 153 companies, 4 proposals, about 75 model requests and 5 minutes. For a quick look, `npm run small` runs the first 12 companies. Options:
+That is a full run: all 153 companies, 4 proposals, about 85 model requests and 6 minutes. For a quick look, `npm run small` runs the first 12 companies. Options:
 
 | Flag | Default | |
 | --- | --- | --- |
@@ -128,7 +138,7 @@ The Gemini API free tier allows about **20 requests per day per model** (quota i
 - The runner (`src/llm/runner.ts`, a Mozaik `InferenceRunner`) paces each model, retries on rate limits, and moves to the next free model when one is out of daily quota, overloaded or hanging. It remembers exhausted models in `.cache/quota.json` until their quota resets. Every call goes into a ledger.
 - Claude prompts through the JigJoy gateway are cached by the gateway on its own, and Anthropic reports cached tokens apart from `input_tokens`. The runner counts them as input and the trace prices them (cache writes at 1.25× the input price).
 
-In the showcase run the models read about 470,000 input tokens in total (325,000 on Gemini flash-lite, 146,000 on Claude), a small part of the ~7M in the dataset. The rest was handled by search and rules. The Claude part cost about $1.04 of the hackathon credit at list prices.
+In the showcase run the models read about 556,000 input tokens in total (321,000 on Gemini flash-lite, 236,000 on Claude), a small part of the ~7M in the dataset. The rest was handled by search and rules. The Claude part cost about $1.52 of the hackathon credit at list prices.
 
 ## Accuracy and transparency
 
