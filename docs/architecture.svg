@@ -1,0 +1,183 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 990" width="1400" height="990" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#1f2328">
+  <title>Spona architecture</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#57606a"/>
+    </marker>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#bc4c00"/>
+    </marker>
+    <style>
+      .box { fill: #f6f8fa; stroke: #8c959f; stroke-width: 1.2; }
+      .agent { fill: #ddf4ff; stroke: #0969da; stroke-width: 1.4; }
+      .rule { fill: #eef9f0; stroke: #1a7f37; stroke-width: 1.4; }
+      .critic { fill: #fff1e5; stroke: #bc4c00; stroke-width: 1.6; }
+      .board { fill: #fbefff; stroke: #8250df; stroke-width: 1.4; }
+      .human { fill: #fff8c5; stroke: #9a6700; stroke-width: 1.2; stroke-dasharray: 5 3; }
+      .frame { fill: #ffffff; stroke: #57606a; stroke-width: 1.4; stroke-dasharray: 2 0; }
+      .h { font-weight: 600; font-size: 14px; }
+      .s { font-size: 12px; fill: #424a53; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+      .tag { font-size: 11px; fill: #57606a; }
+      .line { stroke: #57606a; stroke-width: 1.3; fill: none; }
+      .dash { stroke: #57606a; stroke-width: 1.3; fill: none; stroke-dasharray: 5 4; }
+      .loop { stroke: #bc4c00; stroke-width: 1.5; fill: none; }
+    </style>
+  </defs>
+  <rect width="1400" height="990" fill="#ffffff"/>
+
+  <!-- top row: data, library, runner, model -->
+  <rect class="box" x="30" y="24" width="330" height="116" rx="8"/>
+  <text x="46" y="48" class="h">EINSTEIN dataset · ~7M tokens</text>
+  <text x="46" y="70" class="s">1,047 researchers · 10,779 papers</text>
+  <text x="46" y="88" class="s">1,823 projects · 111 patents</text>
+  <text x="46" y="106" class="s">153 companies · 489 challenges · 917 pages</text>
+
+  <path class="line" d="M360,82 L398,82" marker-end="url(#arrow)"/>
+
+  <rect class="rule" x="400" y="24" width="440" height="116" rx="8"/>
+  <text x="416" y="48" class="h">Library · built at start, no model (~7 s)</text>
+  <text x="416" y="70" class="s">BM25 over every paper and profile · Latin and Cyrillic folded</text>
+  <text x="416" y="88" class="s">same person stored twice → merged · namesakes → kept apart</text>
+  <text x="416" y="106" class="s">a paper counts only if the profile lists it or carries the id</text>
+  <text x="416" y="126" class="s"><tspan font-weight="600">Used by</tspan> the matchmaker (search) and the critic (sources)</text>
+
+  <rect class="box" x="880" y="24" width="330" height="116" rx="8"/>
+  <text x="896" y="48" class="h">Guarded runner (a Mozaik InferenceRunner)</text>
+  <text x="896" y="70" class="s">GEMINI_API_KEY_NTP only · free-tier pacing</text>
+  <text x="896" y="88" class="s">fallback across free models · quota memory</text>
+  <text x="896" y="106" class="s">answer cache · ledger of every call</text>
+  <text x="896" y="126" class="s"><tspan font-weight="600">Called by</tspan> every agent loop that needs a model</text>
+  <path class="line" d="M1210,82 L1238,82" marker-end="url(#arrow)"/>
+  <rect class="box" x="1240" y="52" width="130" height="60" rx="30"/>
+  <text x="1305" y="78" class="h" text-anchor="middle">Gemini API</text>
+  <text x="1305" y="96" class="s" text-anchor="middle">free tier</text>
+
+  <!-- runtime frame -->
+  <rect class="frame" x="30" y="156" width="1340" height="494" rx="10"/>
+  <text x="48" y="180" class="h">Mozaik runtime</text>
+  <text x="160" y="180" class="s">participants join one bus and react to the events they care about · shared state lives on the board · every model question is its own loop</text>
+
+
+  <!-- row A -->
+  <rect class="rule" x="60" y="200" width="250" height="112" rx="8"/>
+  <text x="76" y="224" class="h">Coordinator</text><text x="170" y="224" class="tag">no model</text>
+  <text x="76" y="246" class="s">splits companies and faculties</text>
+  <text x="76" y="264" class="s">watches progress on the board</text>
+  <text x="76" y="282" class="s">picks pairs when the ranking</text>
+  <text x="76" y="300" class="s">settles: one per company / person</text>
+
+  <rect class="agent" x="348" y="208" width="250" height="112" rx="8" opacity="0.5"/>
+  <rect class="agent" x="344" y="204" width="250" height="112" rx="8" opacity="0.7"/>
+  <rect class="agent" x="340" y="200" width="250" height="112" rx="8"/>
+  <text x="356" y="224" class="h">Industry Analysts ×3</text>
+  <text x="356" y="246" class="s">each owns a third of the companies</text>
+  <text x="356" y="264" class="s">challenge → research or not,</text>
+  <text x="356" y="282" class="s">research question, search terms,</text>
+  <text x="356" y="300" class="s">a verbatim quote as evidence</text>
+
+  <rect class="rule" x="620" y="200" width="250" height="112" rx="8"/>
+  <text x="636" y="224" class="h">Matchmaker</text><text x="734" y="224" class="tag">no model</text>
+  <text x="636" y="246" class="s">searches the library per card</text>
+  <text x="636" y="264" class="s">fit = topic × availability + openness</text>
+  <text x="636" y="282" class="s">ranks pairs live as cards land;</text>
+  <text x="636" y="300" class="s">re-scores after the critic</text>
+
+  <rect class="agent" x="908" y="208" width="250" height="112" rx="8" opacity="0.5"/>
+  <rect class="agent" x="904" y="204" width="250" height="112" rx="8" opacity="0.7"/>
+  <rect class="agent" x="900" y="200" width="250" height="112" rx="8"/>
+  <text x="916" y="224" class="h">Research Profilers ×3</text>
+  <text x="916" y="246" class="s">each owns whole faculties</text>
+  <text x="916" y="264" class="s">evidence card per queued pair:</text>
+  <text x="916" y="282" class="s">verdict, joint problem, 3–5 claims</text>
+  <text x="916" y="300" class="s">each citing SYN-PUB / PRJ / PAT ids</text>
+
+  <rect class="box" x="1180" y="200" width="170" height="50" rx="8"/>
+  <text x="1194" y="221" class="h">Recorder</text>
+  <text x="1194" y="239" class="s">→ runs/&lt;id&gt;/trace.md</text>
+  <rect class="box" x="1180" y="262" width="170" height="50" rx="8"/>
+  <text x="1194" y="283" class="h">Cloud relay</text>
+  <text x="1194" y="301" class="s">→ Mozaik cloud, live</text>
+
+  <!-- bus -->
+  <rect x="60" y="346" width="1290" height="40" rx="6" fill="#24292f"/>
+  <text x="705" y="371" fill="#ffffff" font-size="13" font-weight="600" text-anchor="middle">EVENT BUS · every participant receives every event · nobody waits for a stage to finish</text>
+  <path class="line" d="M185,312 L185,346"/><path class="line" d="M465,320 L465,346"/><path class="line" d="M745,312 L745,346"/><path class="line" d="M1025,320 L1025,346"/><path class="line" d="M1265,312 L1265,346"/>
+  <path class="line" d="M185,386 L185,420"/><path class="line" d="M540,386 L540,420"/><path class="line" d="M880,386 L880,420"/><path class="line" d="M1195,386 L1195,420"/>
+
+  <!-- row B -->
+  <rect class="human" x="60" y="420" width="250" height="112" rx="8"/>
+  <text x="76" y="444" class="h">EINSTEIN staff (optional)</text>
+  <text x="76" y="466" class="s">with --approve, a person sees the</text>
+  <text x="76" y="484" class="s">shortlist and its reasons and says</text>
+  <text x="76" y="502" class="s">yes or no before anything is</text>
+  <text x="76" y="520" class="s">written about anyone</text>
+
+  <rect class="critic" x="340" y="420" width="400" height="150" rx="8"/>
+  <text x="356" y="444" class="h">Critic</text><text x="408" y="444" class="tag">runs alongside everyone, reviews whatever lands</text>
+  <text x="356" y="468" class="s"><tspan font-weight="600">1. Rules, no model:</tspan> the id exists · the work is this person's,</text>
+  <text x="356" y="486" class="s">not a namesake's · years match the source · quotes are verbatim</text>
+  <text x="356" y="510" class="s"><tspan font-weight="600">2. Model, batched:</tspan> does the source say what the claim says?</text>
+  <text x="356" y="528" class="s">supported / overstated / unsupported, with the reason</text>
+  <text x="356" y="552" class="s">Not supported → back to its author · after one revision → dropped</text>
+
+  <rect class="agent" x="760" y="420" width="250" height="112" rx="8"/>
+  <text x="776" y="444" class="h">Proposal Writer</text>
+  <text x="776" y="466" class="s">drafts every selected pair at once</text>
+  <text x="776" y="484" class="s">industrial PhD topic or one-page</text>
+  <text x="776" y="502" class="s">joint project, from verified claims</text>
+  <text x="776" y="520" class="s">only; every fact cites its id</text>
+
+  <rect class="board" x="1040" y="420" width="310" height="150" rx="8"/>
+  <text x="1056" y="444" class="h">Shared board</text><text x="1158" y="444" class="tag">Mozaik RuntimeState</text>
+  <text x="1056" y="468" class="s">challenge cards (from analysts)</text>
+  <text x="1056" y="486" class="s">pairs, fit and live ranking (matchmaker)</text>
+  <text x="1056" y="504" class="s">evidence cards and claims (profilers)</text>
+  <text x="1056" y="522" class="s">proposals (writer)</text>
+  <text x="1056" y="540" class="s">critic interventions and outcomes</text>
+  <text x="1056" y="558" class="s">shards, budget, progress (coordinator)</text>
+
+  <text x="48" y="600" class="s"><tspan fill="#0969da" font-weight="600">Blue</tspan>: agents that call a model · <tspan fill="#1a7f37" font-weight="600">green</tspan>: agents that use rules and search only · <tspan fill="#bc4c00" font-weight="600">orange</tspan>: the critic (both) · <tspan fill="#8250df" font-weight="600">purple</tspan>: shared state.</text>
+  <text x="48" y="622" class="s">Concurrency: 3 analysts read their shards while the critic checks finished cards, the matchmaker ranks them and 3 profilers build evidence for the best pairs; evidence budget unlocks as analysis progresses.</text>
+
+  <!-- event flow -->
+  <text x="30" y="690" class="h">One pair's way through the bus</text>
+  <text x="270" y="690" class="s">(many pairs are at different steps at the same time; orange arrows are the critic's review loops)</text>
+
+  <g>
+    <rect class="rule" x="40" y="740" width="190" height="56" rx="6"/><text x="52" y="760" class="tag">Coordinator</text><text x="52" y="782" class="mono">shard.assigned</text>
+    <rect class="agent" x="262" y="740" width="190" height="56" rx="6"/><text x="274" y="760" class="tag">Analyst</text><text x="274" y="782" class="mono">challenge.submitted</text>
+    <rect class="critic" x="484" y="740" width="190" height="56" rx="6"/><text x="496" y="760" class="tag">Critic · quote rule</text><text x="496" y="782" class="mono">challenge.accepted</text>
+    <rect class="rule" x="706" y="740" width="190" height="56" rx="6"/><text x="718" y="760" class="tag">Matchmaker · search + fit</text><text x="718" y="782" class="mono">pair.queued</text>
+    <rect class="agent" x="928" y="740" width="190" height="56" rx="6"/><text x="940" y="760" class="tag">Profiler</text><text x="940" y="782" class="mono">card.submitted</text>
+    <rect class="critic" x="1150" y="740" width="210" height="56" rx="6"/><text x="1162" y="760" class="tag">Critic · rules, then model</text><text x="1162" y="782" class="mono">card.verified</text>
+    <path class="line" d="M230,768 L260,768" marker-end="url(#arrow)"/>
+    <path class="line" d="M452,768 L482,768" marker-end="url(#arrow)"/>
+    <path class="line" d="M674,768 L704,768" marker-end="url(#arrow)"/>
+    <path class="line" d="M896,768 L926,768" marker-end="url(#arrow)"/>
+    <path class="line" d="M1118,768 L1148,768" marker-end="url(#arrow)"/>
+    <path class="loop" d="M560,740 C540,708 400,708 380,738" marker-end="url(#arrowRed)"/>
+    <text x="400" y="716" class="mono" fill="#bc4c00">challenge.returned ↺</text>
+    <path class="loop" d="M1230,740 C1210,708 1060,708 1040,738" marker-end="url(#arrowRed)"/>
+    <text x="1062" y="716" class="mono" fill="#bc4c00">card.returned ↺</text>
+  </g>
+
+  <path class="line" d="M1255,796 L1255,826 L135,826 L135,858" marker-end="url(#arrow)"/>
+
+  <g>
+    <rect class="rule" x="40" y="860" width="190" height="56" rx="6"/><text x="52" y="880" class="tag">Matchmaker</text><text x="52" y="902" class="mono">pair.rescored</text>
+    <rect class="rule" x="262" y="860" width="190" height="56" rx="6"/><text x="274" y="880" class="tag">Coordinator · settled?</text><text x="274" y="902" class="mono">selection.made</text>
+    <rect class="human" x="484" y="860" width="190" height="56" rx="6"/><text x="496" y="880" class="tag">EINSTEIN staff, optional</text><text x="496" y="902" class="mono">human.decided</text>
+    <rect class="agent" x="706" y="860" width="190" height="56" rx="6"/><text x="718" y="880" class="tag">Writer, all pairs at once</text><text x="718" y="902" class="mono">proposal.submitted</text>
+    <rect class="critic" x="928" y="860" width="190" height="56" rx="6"/><text x="940" y="880" class="tag">Critic · ids, then model</text><text x="940" y="902" class="mono">proposal.accepted</text>
+    <rect class="box" x="1150" y="860" width="210" height="56" rx="6"/><text x="1162" y="880" class="tag">Recorder</text><text x="1162" y="902" class="mono">runs/&lt;id&gt;/ written</text>
+    <path class="line" d="M230,888 L260,888" marker-end="url(#arrow)"/>
+    <path class="line" d="M452,888 L482,888" marker-end="url(#arrow)"/>
+    <path class="line" d="M674,888 L704,888" marker-end="url(#arrow)"/>
+    <path class="line" d="M896,888 L926,888" marker-end="url(#arrow)"/>
+    <path class="line" d="M1118,888 L1148,888" marker-end="url(#arrow)"/>
+    <path class="loop" d="M1010,916 C990,950 840,950 820,918" marker-end="url(#arrowRed)"/>
+    <text x="842" y="962" class="mono" fill="#bc4c00">proposal.returned ↺</text>
+  </g>
+  <text x="30" y="980" class="tag">Spona · NTP Novi Sad Hackathon 2026 · Track 02 EINSTEIN</text>
+</svg>

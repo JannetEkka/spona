@@ -1,0 +1,29 @@
+{
+  "name": "spona",
+  "version": "0.1.0",
+  "description": "Concurrent Mozaik agents that pair University of Novi Sad researchers with NTP Novi Sad companies and draft the joint project, with every claim checked against its source.",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "data": "node scripts/fetch-data.mjs",
+    "start": "tsx src/main.ts",
+    "small": "tsx src/main.ts --companies 12",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts",
+    "reverse": "tsx src/reverse.ts"
+  },
+  "dependencies": {
+    "@mozaik-ai/cloud-sdk": "^0.1.3",
+    "@mozaik-ai/core": "4.2.0",
+    "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}
