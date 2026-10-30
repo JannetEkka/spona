@@ -14,7 +14,8 @@
     "small": "tsx src/main.ts --companies 12",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test test/*.test.ts",
-    "reverse": "tsx src/reverse.ts"
+    "reverse": "tsx src/reverse.ts",
+    "report": "tsx scripts/report.ts"
   },
   "dependencies": {
     "@mozaik-ai/cloud-sdk": "^0.1.3",

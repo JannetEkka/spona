@@ -23,7 +23,7 @@ Example shape for an industrial PhD topic (adapt headings for a one-page joint p
 **Company:** … **Faculty:** … **Supervisors:** … **Candidate:** …
 ### The problem
 ### Research questions (2-3, each measurable)
-### Plan (a table by year or by quarter, with a result per row)
+### Plan (a table by quarter or by month, with a result per row; write each period as a calendar period such as "Q1 2027", "Q1–Q2 2027" or "Jan–Mar 2027", never "Months 1–3")
 ### What each side brings
 ### Why this pair
 ### Open questions for the first meeting (3)
