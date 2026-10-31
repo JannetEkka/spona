@@ -4,7 +4,7 @@ Spona (Serbian for "link" or "clasp") is a team of AI agents on [Mozaik](https:/
 
 NTP Novi Sad Hackathon 2026 (JigJoy × Mozaik), Track 02 EINSTEIN. Team SmarTies (Jannet Ekka), online.
 
-**Live page:** https://jannetekka.github.io/spona/ replays the recorded run: every agent loop over time, every place the critic stepped in, the four proposals with their charts, and what the run found.
+**Live page:** https://jannetekka.github.io/spona/ is the recorded run as an app. **Replay** shows every agent loop over time. **Matchmaker** lets you pick any of the 489 company problems and see who could solve it and why, or why nobody does. **Proposals**, **Critic** and **Gaps** have the four drafts, every place the critic stepped in, and the company needs the university can't meet yet.
 
 **The showcase run:** [runs/2026-10-31-full/](runs/2026-10-31-full/) has the proposals, the [trace](runs/2026-10-31-full/trace.md) with every place the critic stepped in, the [ranking of pairs](runs/2026-10-31-full/ranking.md) and [every challenge with its outcome](runs/2026-10-31-full/challenges.md). Charts of what it found are in [insights.md](runs/2026-10-31-full/insights.md).
 
