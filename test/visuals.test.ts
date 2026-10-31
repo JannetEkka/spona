@@ -33,10 +33,12 @@ Text.`
 
 test("a dated plan gets a Gantt chart right under its table", () => {
 	const chart = planGantt(draft)!
-	assert.match(chart, /Measure the baseline : p1, 2027-01-01, 2027-03-31/)
-	assert.match(chart, /Build the prototype test it : p2, 2027-04-01, 2027-09-30/)
+	assert.match(chart, /Step 1 · Q1 2027 : p1, 2027-01-01, 2027-03-31/)
+	assert.match(chart, /Step 2 · Q2–Q3 2027 : p2, 2027-04-01, 2027-09-30/)
+	assert.doesNotMatch(chart, /…/)
 	const out = withPlanGantt(draft)
-	assert.ok(out.indexOf("```mermaid") > out.indexOf("| Q2–Q3 2027"))
+	assert.match(out, /\| \*\*Step 1\*\* · Q1 2027 \|/)
+	assert.ok(out.indexOf("```mermaid") > out.indexOf("Q2–Q3 2027 |"))
 	assert.ok(out.indexOf("```mermaid") < out.indexOf("### What each side brings"))
 })
 
