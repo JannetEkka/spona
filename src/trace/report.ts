@@ -35,14 +35,17 @@ function gantt(s: SponaState, loops: LoopRecord[]): string {
 	return lines.join("\n")
 }
 
-/** A cited publication, project or patent, with the title and year a chart can show. */
-function evidenceItem(s: SponaState, id: string): EvidenceItem | undefined {
+/** A cited publication, project or patent, summarised by its own keywords, acronym, role or status. */
+function evidenceItem(s: SponaState, id: string, researcherId: string): EvidenceItem | undefined {
 	const pub = s.ds.publications.get(id)
-	if (pub) return { id, year: String(pub.year), title: pub.title }
+	if (pub) return { id, kind: "paper", when: String(pub.year), tags: pub.keywords.slice(0, 3) }
 	const prj = s.ds.projects.get(id)
-	if (prj) return { id, year: prj.years, title: prj.acronym ? `${prj.acronym}: ${prj.title}` : prj.title }
+	if (prj) {
+		const role = prj.participants.find((p) => p.researcher_id === researcherId)?.role
+		return { id, kind: "project", when: prj.years, tags: [prj.acronym, role].filter((x): x is string => Boolean(x)) }
+	}
 	const pat = s.ds.patents.get(id)
-	if (pat) return { id, year: String(pat.year), title: `Patent: ${pat.title}` }
+	if (pat) return { id, kind: "patent", when: String(pat.year), tags: [pat.status].filter(Boolean) }
 	return undefined
 }
 
@@ -136,9 +139,9 @@ export function writeRun(s: SponaState, events: TraceEvent[], loops: Map<string,
 		const researcher = ds.researcherById.get(pair.researcherId)!
 		const challengeCard = board.cards.get(pair.challengeId)
 		const kept = claims.filter((c) => c.status === "supported")
-		const items = [...new Set(kept.flatMap((c) => c.sources))].map((id) => evidenceItem(s, id)).filter((x): x is EvidenceItem => Boolean(x))
+		const items = [...new Set(kept.flatMap((c) => c.sources))].map((id) => evidenceItem(s, id, pair.researcherId)).filter((x): x is EvidenceItem => Boolean(x))
 		const map = evidenceMap(
-			{ id: pair.challengeId, company: company.name, text: company.challenges.find((c) => c.id === pair.challengeId)?.text ?? "" },
+			{ id: pair.challengeId, company: company.name, tags: challengeCard?.disciplines ?? [] },
 			{ id: researcher.id, name: researcher.name },
 			items,
 			`their work covers ${Math.round(pair.fit.topic * 100)}% of its terms`,

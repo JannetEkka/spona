@@ -115,39 +115,59 @@ export function planGantt(markdown: string): string | undefined {
 		"    axisFormat %b %Y",
 		"    todayMarker off",
 		"    section Plan",
-		...tasks.map((t, i) => `    ${cut(taskName(t.activity), 48) || `Step ${i + 1}`} : p${i + 1}, ${t.span!.start}, ${t.span!.end}`),
+		// Bars are labelled by step number and period; the numbered table above has the full text.
+		...tasks.map((t, i) => `    Step ${i + 1} · ${taskName(t.period).replace(/\s*\(.*$/, "")} : p${i + 1}, ${t.span!.start}, ${t.span!.end}`),
 		"```",
 	].join("\n")
 }
 
-/** Puts the plan's Gantt chart right under its table. */
+/** Numbers the plan table's rows ("Step 1 · Q1 2027") and puts its Gantt chart right under it. */
 export function withPlanGantt(markdown: string): string {
 	const plan = planRows(markdown)
 	const chart = planGantt(markdown)
 	if (!plan || !chart) return markdown
-	return `${markdown.slice(0, plan.tableEnd).trimEnd()}\n\n${chart}\n${markdown.slice(plan.tableEnd)}`
+	const heading = markdown.search(/^###\s+Plan\b/m)
+	let step = 0
+	let header = true
+	const table = markdown
+		.slice(heading, plan.tableEnd)
+		.split("\n")
+		.map((line) => {
+			if (!line.trim().startsWith("|") || /^\|\s*:?-{3,}/.test(line.trim())) return line
+			if (header) {
+				header = false
+				return line
+			}
+			step++
+			return line.replace(/^(\s*\|\s*)/, `$1**Step ${step}** · `)
+		})
+		.join("\n")
+	return `${markdown.slice(0, heading)}${table.trimEnd()}\n\n${chart}\n${markdown.slice(plan.tableEnd)}`
 }
 
 export interface EvidenceItem {
 	id: string
-	year?: string
-	title: string
+	kind: "paper" | "project" | "patent"
+	when?: string
+	/** Short, complete descriptors (keywords, acronym, role, status): never a cut-off title. */
+	tags: string[]
 }
 
-/** The company's need, the researcher, and the researcher's own work the critic kept. */
+/** The company's need, the researcher, and the researcher's own work the critic kept, summarised. */
 export function evidenceMap(
-	need: { id: string; company: string; text: string },
+	need: { id: string; company: string; tags: string[] },
 	researcher: { id: string; name: string },
 	items: EvidenceItem[],
 	link?: string,
 ): string | undefined {
 	if (!items.length) return undefined
+	const lines = (tags: string[]) => tags.map((t) => wrap(label(t), 24)).join("<br/>")
 	return [
 		"```mermaid",
 		"flowchart LR",
-		`    need["${label(need.id)}<br/>${wrap(label(need.company), 24)}<br/><br/>${wrap(label(cut(need.text, 110)), 24)}"]`,
+		`    need["${label(need.id)}<br/>${wrap(label(need.company), 24)}${need.tags.length ? `<br/><br/>${lines(need.tags)}` : ""}"]`,
 		`    who["${wrap(label(researcher.name), 24)}<br/>${label(researcher.id)}"]`,
-		...items.map((e, i) => `    e${i + 1}["${label(`${e.id}${e.year ? ` · ${e.year}` : ""}`)}<br/>${wrap(label(cut(e.title, 80)), 24)}"]`),
+		...items.map((e, i) => `    e${i + 1}["${label(e.id)}<br/>${label([e.kind, e.when].filter(Boolean).join(" · "))}${e.tags.length ? `<br/><br/>${lines(e.tags)}` : ""}"]`),
 		`    need -->${link ? `|"${label(link)}"|` : ""} who`,
 		...items.map((_, i) => `    who --> e${i + 1}`),
 		"```",
